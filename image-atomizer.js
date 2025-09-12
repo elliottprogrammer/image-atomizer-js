@@ -11,7 +11,7 @@ class ImageAtomizer {
         // Default properties
         this.elementId = "image-atomizer";
         this.width = 0;
-        this.height = 20;
+        this.height = 0;
         this.particleGap = 0;
         this.particleSize = 2;
         this.offsetX = 0;
@@ -40,7 +40,7 @@ class ImageAtomizer {
         
         // DOM elements
         this.$container = document.getElementById(this.elementId);
-        this.$canv = document.querySelector(".draw");
+        this.$canv = this.$container.querySelector("canvas.atomizer");
         
         // Canvas elements
         this.$srcCanv = document.createElement("canvas");
@@ -64,8 +64,8 @@ class ImageAtomizer {
         this.touchY = null;
         
         // Canvas dimensions
-        this.cw = this.getCw();
-        this.ch = this.getCh();
+        this.cw = this.getCanvasWidth();
+        this.ch = this.getCanvasHeight();
         
         // Animation properties
         this.frame = 0;
@@ -127,6 +127,7 @@ class ImageAtomizer {
         
         if (this.supportsSwipeEvents()) {
             const trackTouchCoordinates = (x, y) => {
+                console.log(x, y);
                 const offset = getOffset(this.$container);
                 this.mx = x - offset.x + document.body.scrollLeft + document.documentElement.scrollLeft;
                 this.my = y - offset.y + document.body.scrollTop + document.documentElement.scrollTop;
@@ -149,12 +150,14 @@ class ImageAtomizer {
             };
         }
         
+        
         // Set the image source
         this.image = new Image();
         this.isImageLoaded = false;
 
         if (imageSrc) {
             this.image.src = imageSrc;
+            
             this.image.onload = () => {
                 this.isImageLoaded = true;
                 this.resize();
@@ -184,8 +187,8 @@ class ImageAtomizer {
             this.gravityY = 0;
             this.x = Math.random() * imageAtomizer.cw;
             this.y = Math.random() * imageAtomizer.ch;
-            this.velocityX = Math.random() * 10 - 5;
-            this.velocityY = Math.random() * 10 - 5;
+            this.velocityX = Math.random() * 10;
+            this.velocityY = Math.random() * 10;
         }
         
         move() {
@@ -199,7 +202,7 @@ class ImageAtomizer {
                 const dy = this.gravityY - this.y;
                 const distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
                 const angle = Math.atan2(dy, dx);
-                let force = distance * 0.01;
+                let force = distance * 0.008;
                 
                 if (imageAtomizer.restless === true) {
                     force += Math.random() * 0.1 - 0.05;
@@ -230,8 +233,8 @@ class ImageAtomizer {
                 this.velocityX += force * Math.cos(angle) + mouseForce * Math.cos(mouseAngle);
                 this.velocityY += force * Math.sin(angle) + mouseForce * Math.sin(mouseAngle);
                 
-                this.velocityX *= 0.92;
-                this.velocityY *= 0.92;
+                this.velocityX *= 0.94;
+                this.velocityY *= 0.94;
                 
                 this.x += this.velocityX;
                 this.y += this.velocityY;
@@ -317,9 +320,9 @@ class ImageAtomizer {
         
         this.drawParticles();
         
-        if (this.frame++ % 25 === 0 && (this.cw !== this.getCw() || this.ch !== this.getCh())) {
-            const newHeight = this.getCh();
-            const newWidth = this.getCw();
+        if (this.frame++ % 25 === 0 && (this.cw !== this.getCanvasWidth() || this.ch !== this.getCanvasHeight())) {
+            const newHeight = this.getCanvasWidth();
+            const newWidth = this.getCanvasHeight();
             
             if (this.ch !== newWidth && typeof this.onWidthChange === "function") {
                 this.onWidthChange(this, newWidth);
@@ -431,17 +434,17 @@ class ImageAtomizer {
         this.hasInitialized = true;
     }
     
-    getCw() {
+    getCanvasWidth() {
         return Math.min(document.body.clientWidth, this.width, this.$container.clientWidth);
     }
     
-    getCh() {
+    getCanvasHeight() {
         return Math.min(document.body.clientHeight, this.height, this.$container.clientHeight);
     }
     
     resize() {
-        this.cw = this.getCw();
-        this.ch = this.getCh();
+        this.cw = this.getCanvasWidth();
+        this.ch = this.getCanvasHeight();
         this.$canv.width = this.cw;
         this.$canv.height = this.ch;
         this.init();
